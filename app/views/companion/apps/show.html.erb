@@ -1,0 +1,141 @@
+<header>
+  <nav>
+    <ul>
+      <li><%= link_to "Companion", root_path %></li>
+      <li><strong><%= @app.name %></strong></li>
+    </ul>
+  </nav>
+  <h1><%= @app.name %></h1>
+</header>
+
+<main>
+  <section id="resources">
+    <h2>Resources</h2>
+    <% if @sample %>
+      <figure>
+      <table>
+        <tbody>
+          <tr>
+            <th scope="row">CPU</th>
+            <td id="cpu"><%= companion_cpu(@sample.cpu) %></td>
+          </tr>
+          <tr>
+            <th scope="row">Memory</th>
+            <td id="memory"><%= companion_memory(@sample.rss, @sample.memory) %></td>
+          </tr>
+          <tr>
+            <th scope="row">Processes</th>
+            <td><%= @sample.entries.size %></td>
+          </tr>
+          <tr>
+            <th scope="row">Sampled</th>
+            <td><%= @sample.sampled_at.to_fs(:db) %></td>
+          </tr>
+        </tbody>
+      </table>
+      </figure>
+      <small>CPU is a percentage of one core, totalled across the app's process group.</small>
+    <% elsif @app.running? %>
+      <p>Resource usage is unavailable.</p>
+    <% else %>
+      <p>The app is not running.</p>
+    <% end %>
+  </section>
+
+  <section id="details">
+    <h2>Details</h2>
+    <figure>
+    <table>
+      <tbody>
+        <tr>
+          <th scope="row">Status</th>
+          <td><%= @app.status %></td>
+        </tr>
+        <tr>
+          <th scope="row">PID</th>
+          <td><%= @app.pid || "—" %></td>
+        </tr>
+        <tr>
+          <th scope="row">URL</th>
+          <td><%= @app.url ? link_to(@app.url, @app.url) : "—" %></td>
+        </tr>
+        <tr>
+          <th scope="row">Host</th>
+          <td><code><%= @app.host %></code></td>
+        </tr>
+        <tr>
+          <th scope="row">Port</th>
+          <td><%= @app.port || "—" %></td>
+        </tr>
+        <tr>
+          <th scope="row">Started</th>
+          <td><%= @app.started_at ? "#{@app.started_at.to_fs(:db)} (#{companion_uptime(@app)} ago)" : "—" %></td>
+        </tr>
+        <tr>
+          <th scope="row">Boot timeout</th>
+          <td><%= @app.boot_timeout %>s</td>
+        </tr>
+        <tr>
+          <th scope="row">Command</th>
+          <td><code><%= companion_command(@app) %></code></td>
+        </tr>
+        <tr>
+          <th scope="row">Directory</th>
+          <td><code><%= companion_directory(@app) %></code></td>
+        </tr>
+      </tbody>
+    </table>
+    </figure>
+  </section>
+
+  <% if @sample %>
+    <section id="processes">
+      <h2>Processes</h2>
+      <figure>
+      <table>
+        <thead>
+          <tr>
+            <th>PID</th>
+            <th>PPID</th>
+            <th>CPU</th>
+            <th>Memory</th>
+            <th>Command</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @sample.entries.each do |entry| %>
+            <tr id="process_<%= entry.pid %>">
+              <td><%= entry.pid %></td>
+              <td><%= entry.ppid %></td>
+              <td><%= companion_cpu(entry.cpu) %></td>
+              <td><%= companion_memory(entry.rss, entry.memory) %></td>
+              <td><code><%= entry.command %></code></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      </figure>
+    </section>
+  <% end %>
+
+  <section id="environment">
+    <h2>Environment</h2>
+    <% environment = companion_environment(@app) %>
+    <% if environment.empty? %>
+      <p>No extra environment variables are set.</p>
+    <% else %>
+      <figure>
+      <table>
+        <tbody>
+          <% environment.each do |key, value| %>
+            <tr>
+              <th scope="row"><code><%= key %></code></th>
+              <td><code><%= value.nil? ? "(unset)" : value %></code></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      </figure>
+    <% end %>
+  </section>
+</main>

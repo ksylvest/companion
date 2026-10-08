@@ -1,0 +1,38 @@
+<header>
+  <h1>Companion</h1>
+</header>
+
+<main>
+<% if @apps.empty? %>
+  <p>No apps are registered.</p>
+<% else %>
+  <figure>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Status</th>
+        <th>PID</th>
+        <th>URL</th>
+        <th>Uptime</th>
+        <th>Command</th>
+        <th>Directory</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @apps.each do |app| %>
+        <tr id="app_<%= app.name %>">
+          <td><%= link_to app.name, app_path(app.name) %></td>
+          <td><%= app.status %></td>
+          <td><%= app.pid || "—" %></td>
+          <td><%= app.url || "—" %></td>
+          <td><%= companion_uptime(app) %></td>
+          <td><code><%= companion_command(app) %></code></td>
+          <td><code><%= companion_directory(app) %></code></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  </figure>
+<% end %>
+</main>

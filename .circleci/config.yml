@@ -1,0 +1,57 @@
+version: 2.1
+
+orbs:
+  ruby: circleci/ruby@3.0.0
+  qlty: qltysh/qlty-orb@0.1.2
+
+executors:
+  default:
+    docker:
+      - image: cimg/ruby:4.0.6
+
+jobs:
+  doc:
+    executor: default
+    steps:
+      - checkout
+      - ruby/install-deps
+      - run: bundle exec yard doc
+      - store_artifacts:
+          path: doc
+          destination: doc
+
+  rspec:
+    executor: default
+    steps:
+      - checkout
+      - ruby/install-deps
+      - ruby/rspec-test
+      - qlty/coverage_publish:
+          files: ./coverage/.resultset.json
+
+  rubocop:
+    executor: default
+    steps:
+      - checkout
+      - ruby/install-deps
+      - ruby/rubocop-check
+
+  release:
+    executor: default
+    steps:
+      - checkout
+      - ruby/install-deps
+      - run: bundle exec rake release
+
+workflows:
+  build:
+    jobs:
+      - doc
+      - rubocop
+      - rspec
+      - release:
+          filters:
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
+            branches:
+              ignore: /.*/
